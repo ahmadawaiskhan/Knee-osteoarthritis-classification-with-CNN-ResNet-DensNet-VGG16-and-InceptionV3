@@ -1,0 +1,79 @@
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers, models
+from tensorflow.keras.layers import Dropout,Dense
+from tensorflow.keras import Sequential
+import numpy as np
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from sklearn.preprocessing import MinMaxScaler
+from keras.models import Model
+from sklearn.decomposition import PCA
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.models import load_model
+from tensorflow.keras.regularizers import l2
+from tensorflow.keras.callbacks import LearningRateScheduler
+from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import train_test_split
+from sklearn import svm
+from sklearn.svm import SVC
+
+train_data_path="E:/preprocessed images/Adaptive histogram dataset/adap hist/preprocessed train data"
+val_data_path="E:/preprocessed images/Adaptive histogram dataset/adap hist/preprocessed val data"
+test_data_path="E:/preprocessed images/Adaptive histogram dataset/adap hist/preprocessed test data"
+
+num_classes=5
+cnn = Sequential([
+    
+    layers.Input(shape=(112,112,1)), 
+    layers.Conv2D(filters=32, kernel_size=(3,3), padding='same', activation='relu'),
+    layers.Conv2D(filters=32, kernel_size=(3,3), padding='same', activation='relu'),
+    layers.Conv2D(filters=32, kernel_size=(3,3), padding='same', activation='relu'),
+    layers.MaxPooling2D(pool_size=(2,2)),
+    layers.Dropout(0.25),
+    layers.Conv2D(filters=64, kernel_size=(3,3), padding='same', activation='relu'),
+    layers.AveragePooling2D(pool_size=(2,2)),
+    layers.Dropout(0.5),
+    layers.Conv2D(filters=128, kernel_size=(3,3), padding='same', activation='relu'),
+    layers.AveragePooling2D(pool_size=(2,2)),
+    layers.Dropout(0.75),
+    layers.Flatten(),
+    layers.Dense(200, activation='relu'),
+    layers.Dropout(0.5),
+    layers.Dense(num_classes, activation='softmax')
+])
+
+cnn.summary()
+train_gen=ImageDataGenerator(rescale=1./255)
+val_gen=ImageDataGenerator(rescale=1./255)
+test_gen=ImageDataGenerator(rescale=1./255)
+train_data=train_gen.flow_from_directory(
+                                
+                                        train_data_path,
+                                        class_mode="categorical",
+                                        batch_size=32,
+                                        color_mode="grayscale",
+                                        target_size=(112,112),
+                                        shuffle=True,
+                                                                        
+                                         
+                                        )
+
+val_data=val_gen.flow_from_directory(
+                                        val_data_path,
+                                        class_mode="categorical",
+                                        color_mode="grayscale",
+                                        batch_size=32,
+                                        target_size=(112,112),
+                                        shuffle=False
+                                        )
+
+test_data=test_gen.flow_from_directory(
+                                        test_data_path,
+                                        class_mode="categorical",
+                                        batch_size=32,
+                                        color_mode="grayscale",
+                                        target_size=(112,112),
+                                        shuffle=False
+                                        )
+cnn.fit(train_data, epochs=50, batch_size=256, validation_data=val_data)
