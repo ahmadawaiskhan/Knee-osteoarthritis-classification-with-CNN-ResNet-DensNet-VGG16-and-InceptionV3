@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binary Classification</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+      <style>
+      body {
+            background-color: rgb(148, 148, 148);
+            color: white;
+            margin-bottom: 50px; 
+            margin-top: -3%;
+        }
+        .manage {
+            margin-left: 35%;
+        }
+
+        .image-box {
+            border: 1px solid #ddd;
+            padding: 20px;
+            text-align: center;
+            background-color: rgb(104, 104, 104);
+        }
+        .image-box img {
+            max-width: 100%;
+            height: auto;
+            background-color: black;
+        }
+        #prediction-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .color{
+            background-color: rgb(109, 109, 109);
+
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <h1 class="text-center image-box mt-4">Multiclass Classification</h1><br><br>
+                <h2 class="text-center">Image Preview</h2><br>
+
+                <form method="post" enctype="multipart/form-data" id="upload-form">
+                    {% csrf_token %}
+                    <div class="form-group manage">
+                        <input type="file" class="form-control-file" name="image_2" accept="image/*" id="image_2">
+                    </div>
+                </form>
+                
+                <div class="image-box mt-4">
+                    <img id="preview-image" src="" alt="Image Preview" class="img-fluid rounded">
+                </div><br>
+                <form method="post" enctype="multipart/form-data" id="upload-form">
+                    {% csrf_token %}
+                    <div class="form-group manage">
+                        <button  type="button" class="btn btn-primary btn-lg color" id="predict-button_2">Predict Image</button>
+                    </div>
+                </form>
+                
+                <div class="mt-4" id="prediction-container">
+                    {% if predicted_class_2 %}
+                        <h2 class="text-center">Predicted Result</h2>
+                        <span id="predicted-class" class="image-box">Predicted Class: {{ predicted_class_2}}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#predict-button_2').on('click', function() {
+            var formData = new FormData($('#upload-form')[0]);
+            
+            $.ajax({
+                url: '{% url "multiclass" %}',  // Replace with your Django URL
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    // Update the prediction container with the new prediction result
+                    $('#prediction-container').html('<h2 class="text-center">Predicted Result</h2><span id="predicted-class">Predicted Class: ' + response.predicted_class + '</span>');
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            });
+        });
+    });
+
+        document.getElementById("image_2").addEventListener("change", function() {
+            var previewImage = document.getElementById("preview-image");
+            var input = this;
+
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        });
+    </script>
+</body>
+</html>
